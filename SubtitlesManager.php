@@ -5,7 +5,6 @@ namespace OpenSubtitles;
  * Class to connect to OSDb and retrieve subtitles
  *
  * @author César Rodríguez <kesarr@gmail.com>
- * @example php subtitles.php <path>
  */
 class SubtitlesManager
 {
@@ -94,21 +93,45 @@ class SubtitlesManager
      * Retrieve the url of the first subtitle found
      *
      * @param $file
-     * @return null|string
+     * @return array
      */
-    public function getSubtitles($file)
+    public function getSubtitleUrls($file, $all = false)
     {
+        $subtitlesUrls = array();
+
         if (!is_file($file)) {
-            return null;
+            return $subtitlesUrls;
         }
         $userToken = $this->logIn();
         $fileHash = $this->openSubtitlesHash($file);
 
         $subtitles = $this->searchSubtitles($userToken, $fileHash, filesize($file));
-        if (!empty($subtitles['data'][0]['SubDownloadLink'])) {
-            return $subtitles['data'][0]['SubDownloadLink'];
+
+        if (!empty($subtitles['data'])) {
+            foreach ($subtitles['data'] as $sub) {
+                if (!empty($sub['SubDownloadLink'])) {
+                    $subtitlesUrls[] = $sub['SubDownloadLink'];
+                    if ($all === false) {
+                        return $subtitlesUrls;
+                    }
+                }
+            }
         }
-        return null;
+
+        return $subtitlesUrls;
+    }
+
+    /**
+     * Download subtitle and put it in the same folder than the video with the same name + srt
+     *
+     * @param string $url
+     * @param string $originalfile
+     */
+    public function downloadSubtitle($url, $originalfile)
+    {
+        $subtitleFile = preg_replace("/\\.[^.\\s]{3,4}$/", "", $originalfile) . '.srt';
+        $subtitleContent = gzdecode(file_get_contents($url));
+        file_put_contents($subtitleFile, $subtitleContent);
     }
 
     /**
