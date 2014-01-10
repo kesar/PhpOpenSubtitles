@@ -8,22 +8,28 @@ namespace OpenSubtitles;
  */
 class SubtitlesManager
 {
-
     const SEARCH_URL = 'http://api.opensubtitles.org/xml-rpc';
-    const LANGUAGE = 'spa';
+    
+    private $username;
+    private $password;
+    private $lang;
+    private $userAgent;
+    
+    public function __construct($username, $password, $lang, $userAgent = 'OS Test User Agent')
+    {
+        $this->username = $username;
+        $this->password = $password;
+        $this->lang = $lang;
+        $this->userAgent = $userAgent;
+    }
+    
 
     /**
      * Log in the opensubtitles.org API
-     *
-     * @param string $username
-     * @param string $password
-     * @param string $lang
-     * @param string $userAgent
-     * @return string|Boolean
      */
-    private function logIn($username = '', $password = '', $lang = '', $userAgent = 'OS Test User Agent')
+    private function logIn()
     {
-        $request = xmlrpc_encode_request("LogIn", array($username, $password, $lang, $userAgent));
+        $request = xmlrpc_encode_request("LogIn", array($this->username, $this->password, $this->lang, $this->userAgent));
         $context = stream_context_create(
             array(
                 'http' => array(
@@ -62,7 +68,7 @@ class SubtitlesManager
             array(
                 $userToken,
                 array(
-                    array('sublanguageid' => self::LANGUAGE, 'moviehash' => $movieToken, 'moviebytesize' => $filesize)
+                    array('sublanguageid' => $this->lang, 'moviehash' => $movieToken, 'moviebytesize' => $filesize)
                 )
             )
         );
@@ -131,6 +137,7 @@ class SubtitlesManager
     {
         $subtitleFile = preg_replace("/\\.[^.\\s]{3,4}$/", "", $originalfile) . '.srt';
         $subtitleContent = gzdecode(file_get_contents($url));
+        
         file_put_contents($subtitleFile, $subtitleContent);
     }
 
