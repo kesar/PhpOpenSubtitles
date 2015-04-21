@@ -15,7 +15,7 @@ class SubtitlesManager
     private $lang;
     private $userAgent;
     
-    public function __construct($username, $password, $lang, $userAgent = 'OS Test User Agent')
+    public function __construct($username, $password, $lang, $userAgent = 'OSTestUserAgent')
     {
         $this->username = $username;
         $this->password = $password;
