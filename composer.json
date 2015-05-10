@@ -1,5 +1,5 @@
 {
-  "name": "kesar/phpOpenSubtitles",
+  "name": "kesar/php-open-subtitles",
   "type": "library",
   "description": "phpOpenSubtitles is a PHP library for opensubtitles.org",
   "keywords": ["api", "subtitles", "opensubtitles", "client", "HTTP client"],
