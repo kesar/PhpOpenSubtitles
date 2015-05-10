@@ -1,45 +1,48 @@
 <?php
-namespace OpenSubtitles;
+
+namespace OpenSubtitlesApi;
 
 /**
  * Class to connect to OSDb and retrieve subtitles
- *
  * @author César Rodríguez <kesarr@gmail.com>
  */
 class SubtitlesManager
 {
     const SEARCH_URL = 'http://api.opensubtitles.org/xml-rpc';
-    
+
     private $username;
     private $password;
     private $lang;
     private $userAgent;
-    
+
     public function __construct($username, $password, $lang, $userAgent = 'OSTestUserAgent')
     {
-        $this->username = $username;
-        $this->password = $password;
-        $this->lang = $lang;
+        $this->username  = $username;
+        $this->password  = $password;
+        $this->lang      = $lang;
         $this->userAgent = $userAgent;
     }
-    
+
 
     /**
-     * Log in the opensubtitles.org API
+     * Log in the OpenSubtitles.org API
      */
     private function logIn()
     {
-        $request = xmlrpc_encode_request("LogIn", array($this->username, $this->password, $this->lang, $this->userAgent));
-        $context = stream_context_create(
+        $request  = xmlrpc_encode_request(
+            "LogIn",
+            array($this->username, $this->password, $this->lang, $this->userAgent)
+        );
+        $context  = stream_context_create(
             array(
                 'http' => array(
-                    'method' => "POST",
-                    'header' => "Content-Type: text/xml",
+                    'method'  => "POST",
+                    'header'  => "Content-Type: text/xml",
                     'content' => $request
                 )
             )
         );
-        $file = file_get_contents(self::SEARCH_URL, false, $context);
+        $file     = file_get_contents(self::SEARCH_URL, false, $context);
         $response = xmlrpc_decode($file);
         if (($response && xmlrpc_is_fault($response))) {
             trigger_error("xmlrpc: $response[faultString] ($response[faultCode])");
@@ -50,6 +53,7 @@ class SubtitlesManager
                 return $response['token'];
             }
         }
+
         return false;
     }
 
@@ -58,12 +62,13 @@ class SubtitlesManager
      *
      * @param string $userToken
      * @param string $movieToken
-     * @param int $filesize
+     * @param int    $filesize
+     *
      * @return bool|array
      */
     private function searchSubtitles($userToken, $movieToken, $filesize)
     {
-        $request = xmlrpc_encode_request(
+        $request  = xmlrpc_encode_request(
             "SearchSubtitles",
             array(
                 $userToken,
@@ -72,16 +77,16 @@ class SubtitlesManager
                 )
             )
         );
-        $context = stream_context_create(
+        $context  = stream_context_create(
             array(
                 'http' => array(
-                    'method' => "POST",
-                    'header' => "Content-Type: text/xml",
+                    'method'  => "POST",
+                    'header'  => "Content-Type: text/xml",
                     'content' => $request
                 )
             )
         );
-        $file = file_get_contents(self::SEARCH_URL, false, $context);
+        $file     = file_get_contents(self::SEARCH_URL, false, $context);
         $response = xmlrpc_decode($file);
         if (($response && xmlrpc_is_fault($response))) {
             trigger_error("xmlrpc: $response[faultString] ($response[faultCode])");
@@ -92,13 +97,16 @@ class SubtitlesManager
                 return $response;
             }
         }
+
         return false;
     }
 
     /**
      * Retrieve the url of the first subtitle found
      *
-     * @param $file
+     * @param      $file
+     * @param bool $all
+     *
      * @return array
      */
     public function getSubtitleUrls($file, $all = false)
@@ -109,7 +117,7 @@ class SubtitlesManager
             return $subtitlesUrls;
         }
         $userToken = $this->logIn();
-        $fileHash = $this->openSubtitlesHash($file);
+        $fileHash  = $this->openSubtitlesHash($file);
 
         $subtitles = $this->searchSubtitles($userToken, $fileHash, filesize($file));
 
@@ -131,13 +139,13 @@ class SubtitlesManager
      * Download subtitle and put it in the same folder than the video with the same name + srt
      *
      * @param string $url
-     * @param string $originalfile
+     * @param string $originalFile
      */
-    public function downloadSubtitle($url, $originalfile)
+    public function downloadSubtitle($url, $originalFile)
     {
-        $subtitleFile = preg_replace("/\\.[^.\\s]{3,4}$/", "", $originalfile) . '.srt';
+        $subtitleFile    = preg_replace("/\\.[^.\\s]{3,4}$/", "", $originalFile) . '.srt';
         $subtitleContent = gzdecode(file_get_contents($url));
-        
+
         file_put_contents($subtitleFile, $subtitleContent);
     }
 
@@ -145,12 +153,13 @@ class SubtitlesManager
      * Hash to send to opensubtitles
      *
      * @param string $file
+     *
      * @return string
      */
     private function openSubtitlesHash($file)
     {
         $handle = fopen($file, "rb");
-        $fsize = filesize($file);
+        $fsize  = filesize($file);
 
         $hash = array(
             3 => 0,
@@ -160,7 +169,7 @@ class SubtitlesManager
         );
 
         for ($i = 0; $i < 8192; $i++) {
-            $tmp = $this->readUINT64($handle);
+            $tmp  = $this->readUINT64($handle);
             $hash = $this->addUINT64($hash, $tmp);
         }
 
@@ -168,17 +177,19 @@ class SubtitlesManager
         fseek($handle, $offset > 0 ? $offset : 0, SEEK_SET);
 
         for ($i = 0; $i < 8192; $i++) {
-            $tmp = $this->readUINT64($handle);
+            $tmp  = $this->readUINT64($handle);
             $hash = $this->addUINT64($hash, $tmp);
         }
 
         fclose($handle);
+
         return $this->uINT64FormatHex($hash);
     }
 
     private function readUINT64($handle)
     {
         $u = unpack("va/vb/vc/vd", fread($handle, 8));
+
         return array(0 => $u["a"], 1 => $u["b"], 2 => $u["c"], 3 => $u["d"]);
     }
 
@@ -196,6 +207,7 @@ class SubtitlesManager
                 $carry = 0;
             }
         }
+
         return $o;
     }
 
@@ -205,4 +217,3 @@ class SubtitlesManager
     }
 
 }
-
