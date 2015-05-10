@@ -108,10 +108,11 @@ class SubtitlesManager
         if (!is_file($file)) {
             return $subtitlesUrls;
         }
-        $userToken     = $this->logIn();
-        $hashGenerator = new HashGenerator();
 
-        $fileHash = $hashGenerator->getHashFromFile($file);
+        $userToken     = $this->logIn();
+        $hashGenerator = new HashGenerator($file);
+
+        $fileHash = $hashGenerator->get();
 
         $subtitles = $this->searchSubtitles($userToken, $fileHash, filesize($file));
 

@@ -4,28 +4,31 @@ namespace OpenSubtitlesApi;
 
 /**
  * Class to generate hash from a file
- *
  * @author César Rodríguez <kesarr@gmail.com>
  */
 class HashGenerator
 {
+    private $filePath;
+
+    public function __construct($filePath)
+    {
+        $this->filePath = $filePath;
+    }
+
     /**
      * Hash to send to OpenSubtitles
-     *
-     * @param string $file
-     *
      * @return string
      */
-    public function getHashFromFile($file)
+    public function get()
     {
-        $handle = fopen($file, "rb");
-        $fsize  = filesize($file);
+        $handle   = fopen($this->filePath, "rb");
+        $fileSize = filesize($this->filePath);
 
         $hash = array(
             3 => 0,
             2 => 0,
-            1 => ($fsize >> 16) & 0xFFFF,
-            0 => $fsize & 0xFFFF
+            1 => ($fileSize >> 16) & 0xFFFF,
+            0 => $fileSize & 0xFFFF
         );
 
         for ($i = 0; $i < 8192; $i++) {
@@ -33,7 +36,7 @@ class HashGenerator
             $hash = $this->addUINT64($hash, $tmp);
         }
 
-        $offset = $fsize - 65536;
+        $offset = $fileSize - 65536;
         fseek($handle, $offset > 0 ? $offset : 0, SEEK_SET);
 
         for ($i = 0; $i < 8192; $i++) {

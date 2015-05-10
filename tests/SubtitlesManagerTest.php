@@ -15,8 +15,9 @@ class SubtitlesManagerTest extends \PHPUnit_Framework_TestCase
         $this->subtitleManager = new SubtitlesManager('username', 'password', 'SPA');
     }
 
-    public function testGetSubtitles()
+    public function testGetSubtitlesReturnsEmptyArray()
     {
-        $this->assertTrue(true);
+        $subtitles = $this->subtitleManager->get('randomFile');
+        $this->assertEquals(array(), $subtitles);
     }
 }
