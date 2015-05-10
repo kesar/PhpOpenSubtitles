@@ -3,3 +3,5 @@ config.ini
 .DS_STORE
 composer.phar
 composer.lock
+phpunit.xml
+vendor/
