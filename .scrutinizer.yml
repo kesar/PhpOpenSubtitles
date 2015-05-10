@@ -1,3 +1,2 @@
 tools:
-    external_code_coverage:
-        timeout: 60    # Timeout in seconds
+    external_code_coverage: true

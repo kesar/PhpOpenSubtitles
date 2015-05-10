@@ -33,21 +33,11 @@ class SubtitlesManager
             "LogIn",
             array($this->username, $this->password, $this->lang, $this->userAgent)
         );
-        $context  = stream_context_create(
-            array(
-                'http' => array(
-                    'method'  => "POST",
-                    'header'  => "Content-Type: text/xml",
-                    'content' => $request
-                )
-            )
-        );
-        $file     = file_get_contents(self::SEARCH_URL, false, $context);
-        $response = xmlrpc_decode($file);
+        $response = $this->generateResponse($request);
         if (($response && xmlrpc_is_fault($response))) {
             trigger_error("xmlrpc: $response[faultString] ($response[faultCode])");
         } else {
-            if (empty($response['status']) || $response['status'] != '200 OK') {
+            if ($this->isWrongStatus($response)) {
                 trigger_error('no login');
             } else {
                 return $response['token'];
@@ -57,6 +47,11 @@ class SubtitlesManager
         return false;
     }
 
+    private function isWrongStatus($response)
+    {
+        return (empty($response['status']) || $response['status'] != '200 OK');
+    }
+
     /**
      * Search for a list of subtitles in opensubtitles.org
      *
@@ -64,7 +59,7 @@ class SubtitlesManager
      * @param string $movieToken
      * @param int    $fileSize
      *
-     * @return bool|array
+     * @return array
      */
     private function searchSubtitles($userToken, $movieToken, $fileSize)
     {
@@ -77,28 +72,18 @@ class SubtitlesManager
                 )
             )
         );
-        $context  = stream_context_create(
-            array(
-                'http' => array(
-                    'method'  => "POST",
-                    'header'  => "Content-Type: text/xml",
-                    'content' => $request
-                )
-            )
-        );
-        $file     = file_get_contents(self::SEARCH_URL, false, $context);
-        $response = xmlrpc_decode($file);
+        $response = $this->generateResponse($request);
         if (($response && xmlrpc_is_fault($response))) {
             trigger_error("xmlrpc: $response[faultString] ($response[faultCode])");
         } else {
-            if (empty($response['status']) || $response['status'] != '200 OK') {
+            if ($this->isWrongStatus($response)) {
                 trigger_error('no login');
             } else {
                 return $response;
             }
         }
 
-        return false;
+        return array();
     }
 
     public function get($file, $all = false)
@@ -119,5 +104,27 @@ class SubtitlesManager
         $urlGenerator = new UrlGenerator();
 
         return $urlGenerator->getSubtitleUrls($subtitles, $all);
+    }
+
+    /**
+     * @param $request
+     *
+     * @return mixed
+     */
+    private function generateResponse($request)
+    {
+        $context  = stream_context_create(
+            array(
+                'http' => array(
+                    'method'  => "POST",
+                    'header'  => "Content-Type: text/xml",
+                    'content' => $request
+                )
+            )
+        );
+        $file     = file_get_contents(self::SEARCH_URL, false, $context);
+        $response = xmlrpc_decode($file);
+
+        return $response;
     }
 }
