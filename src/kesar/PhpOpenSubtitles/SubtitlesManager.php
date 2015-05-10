@@ -4,7 +4,6 @@ namespace OpenSubtitlesApi;
 
 /**
  * Class to connect to OSDb and retrieve subtitles
- *
  * @author César Rodríguez <kesarr@gmail.com>
  */
 class SubtitlesManager
@@ -63,18 +62,18 @@ class SubtitlesManager
      *
      * @param string $userToken
      * @param string $movieToken
-     * @param int    $filesize
+     * @param int    $fileSize
      *
      * @return bool|array
      */
-    private function searchSubtitles($userToken, $movieToken, $filesize)
+    private function searchSubtitles($userToken, $movieToken, $fileSize)
     {
         $request  = xmlrpc_encode_request(
             "SearchSubtitles",
             array(
                 $userToken,
                 array(
-                    array('sublanguageid' => $this->lang, 'moviehash' => $movieToken, 'moviebytesize' => $filesize)
+                    array('sublanguageid' => $this->lang, 'moviehash' => $movieToken, 'moviebytesize' => $fileSize)
                 )
             )
         );
@@ -102,53 +101,22 @@ class SubtitlesManager
         return false;
     }
 
-    /**
-     * Retrieve the url of the first subtitle found
-     *
-     * @param      $file
-     * @param bool $all
-     *
-     * @return array
-     */
-    public function getSubtitleUrls($file, $all = false)
+    public function get($file, $all = false)
     {
         $subtitlesUrls = array();
 
         if (!is_file($file)) {
             return $subtitlesUrls;
         }
-        $userToken = $this->logIn();
+        $userToken     = $this->logIn();
         $hashGenerator = new HashGenerator();
 
-        $fileHash  = $hashGenerator->getHashFromFile($file);
+        $fileHash = $hashGenerator->getHashFromFile($file);
 
         $subtitles = $this->searchSubtitles($userToken, $fileHash, filesize($file));
 
-        if (!empty($subtitles['data'])) {
-            foreach ($subtitles['data'] as $sub) {
-                if (!empty($sub['SubDownloadLink'])) {
-                    $subtitlesUrls[] = $sub['SubDownloadLink'];
-                    if ($all === false) {
-                        return $subtitlesUrls;
-                    }
-                }
-            }
-        }
+        $urlGenerator = new UrlGenerator();
 
-        return $subtitlesUrls;
-    }
-
-    /**
-     * Download subtitle and put it in the same folder than the video with the same name + srt
-     *
-     * @param string $url
-     * @param string $originalFile
-     */
-    public function downloadSubtitle($url, $originalFile)
-    {
-        $subtitleFile    = preg_replace("/\\.[^.\\s]{3,4}$/", "", $originalFile) . '.srt';
-        $subtitleContent = gzdecode(file_get_contents($url));
-
-        file_put_contents($subtitleFile, $subtitleContent);
+        return $urlGenerator->getSubtitleUrls($subtitles, $all);
     }
 }
