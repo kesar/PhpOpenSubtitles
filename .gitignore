@@ -1,2 +1,5 @@
 config.ini
-
+.idea
+.DS_STORE
+composer.phar
+composer.lock
