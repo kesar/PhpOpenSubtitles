@@ -14,7 +14,7 @@ Library to connect with [opensubtitles.org](http://www.opensubtitles.org)
 2. run in console ``php console.php <filePathOfYourVideoFile>```
 
 
-```
+```php
 <?php
 /**
  * Example that use SubtitleManager in console
