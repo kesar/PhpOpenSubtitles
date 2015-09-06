@@ -33,7 +33,7 @@ if (empty($config)) {
     return 1;
 }
 
-$manager   = new SubtitlesManager($config['username'], $config['password'], $config['lang']);
+$manager   = new SubtitlesManager($config['username'], $config['password'], $config['language']);
 $subtitles = $manager->get($file);
 
 if (!empty($subtitles) && !empty($subtitles[0])) {
