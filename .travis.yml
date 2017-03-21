@@ -7,7 +7,7 @@ php:
   - 7.0
   - hhvm
 
-before_script: composer --no-dev install
+before_script: composer install
 
 script: phpunit --configuration phpunit.xml.dist --coverage-clover=coverage.clover
 
