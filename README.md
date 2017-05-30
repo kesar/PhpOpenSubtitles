@@ -42,7 +42,7 @@ if (!is_file($file)) {
     return 1;
 }
 
-$config = Yaml::parse(__DIR__ . '/config/configuration.yml.dist');
+$config = Yaml::parse(file_get_contents(__DIR__ . '/config/configuration.yml.dist'));
 
 if (empty($config)) {
     echo 'error! config file does not exist';
